@@ -23,15 +23,48 @@ $('#search').on('click', () => {
 	});
 });
 
-// Test Select2
+// test Select2 with prefetch data
 $.getJSON({
 	url: baseUrl,
 }).then((response) => {
-	const property = propertyInput.val();
+	const value = propertyInput.val();
+	const text = propertyInput.val();
 	const html = response.value
-		.map((x) => `<option value="${x[property]}">${x[property]}</option>`)
+		.map((x) => `<option value="${x[value]}">${x[text]}</option>`)
 		.join('');
-	console.log(html);
 	$('.js-example-basic-single').html(html);
 	$('.js-example-basic-single').select2();
+});
+
+// test Select2 autocomplete with odata filter
+$('.js-data-example-ajax').select2({
+	ajax: {
+		url: baseUrl,
+		dataType: 'json',
+		delay: 250,
+		data: function (params) {
+			const property = propertyInput.val();
+			return {
+				$filter: `contains(${property}, '${params.term}') eq true`,
+				page: params.page,
+			};
+		},
+		processResults: function (data, params) {
+			params.page = params.page || 1;
+			const id = propertyInput.val();
+			const text = propertyInput.val();
+
+			return {
+				results: data.value.map((item) => ({
+					id: item[id],
+					text: item[text],
+				})),
+				pagination: {
+					more: params.page * 30 < data.value.total_count,
+				},
+			};
+		},
+		cache: true,
+	},
+	minimumInputLength: 2,
 });
