@@ -3,30 +3,28 @@ import 'select2/dist/css/select2.min.css';
 import select2 from 'select2';
 select2($);
 
+const availableProperties = $('#available-properties');
 const term = $('#term');
 const propertyInput = $('#property');
 const result = $('#results');
 const baseUrl =
 	'https://services.odata.org/V4/(S(wptr35qf3bz4kb5oatn432ul))/TripPinServiceRW/People';
 const getSearchFilter = () =>
-	`?$filter=contains(${property},%20%27${term.val()}%27)%20eq%20true`;
+	`?$filter=contains(${propertyInput.val()},%20%27${term.val()}%27)%20eq%20true`;
 
 // Test endpoint
 $('#search').on('click', () => {
-	const property = propertyInput.val();
-	$.ajax({
-		url: `${baseUrl}?${getSearchFilter()}`,
-	}).then((response) => {
+	$.getJSON(`${baseUrl}${getSearchFilter()}`).then((response) => {
 		result.html(
-			response.value.map((x) => `<span>${x[property]}</span>`).join(', ')
+			response.value
+				.map((x) => `<span>${x[propertyInput.val()]}</span>`)
+				.join(', ')
 		);
 	});
 });
 
 // test Select2 with prefetch data
-$.getJSON({
-	url: baseUrl,
-}).then((response) => {
+$.getJSON(baseUrl).then((response) => {
 	const value = propertyInput.val();
 	const text = propertyInput.val();
 	const html = response.value
